@@ -1,3 +1,26 @@
+
+# This fork
+
+This repository is a fork of Deno and adds wry to support webiew.
+It is mostly a proof of concept and therefor a bit hacked together, hopefully it can inspire official support for something similar.
+
+Main changes to make this work:
+- Disables console on windows, so no output will be logged.
+- Binaries made with `deno compile` will launch a wry webview window in a separate thread.
+- Loads an extension that enable IPC between Deno and the Webview.
+- Adds arguments to configure the webview
+
+These are the extra arguments that can be passed to `compile`:
+- title: The title of the application (default: `Webview`)
+- webview-url: The path to a html file, can be relative, absolute or remote (default: `./index.html`)
+- dev-tools: Allows users to open dev-tools window
+- transparent: Allows for applications to have transparent backgrounds
+- no-decorations: Disables the default OS decorations (titlebar, minimize, maximize, close, etc)
+
+Known limitations:
+- On Mac running webview in a separate thread doesn't work, so this won't work either
+
+
 # Deno
 
 [![Build Status - Cirrus][]][Build status] [![Twitter handle][]][Twitter badge]
