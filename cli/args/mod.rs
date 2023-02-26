@@ -956,6 +956,26 @@ impl CliOptions {
     self.flags.no_clear_screen
   }
 
+  pub fn webview_url_flag(&self) -> &Option<String> {
+    &self.flags.webview_url
+  }
+
+  pub fn title_flag(&self) -> &Option<String> {
+    &self.flags.title
+  }
+
+  pub fn transparent(&self) -> bool {
+    self.flags.transparent
+  }
+
+  pub fn decorations(&self) -> bool {
+    self.flags.decorations
+  }
+
+  pub fn dev_tools(&self) -> bool {
+    self.flags.dev_tools
+  }
+
   pub fn no_prompt(&self) -> bool {
     resolve_no_prompt(&self.flags)
   }

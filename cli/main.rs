@@ -1,4 +1,5 @@
 // Copyright 2018-2023 the Deno authors. All rights reserved. MIT license.
+#![windows_subsystem = "windows"]
 
 mod args;
 mod auth_tokens;
@@ -23,6 +24,7 @@ mod tools;
 mod tsc;
 mod util;
 mod version;
+mod webview;
 mod worker;
 
 use crate::args::flags_from_vec;
@@ -41,8 +43,27 @@ use deno_core::error::JsError;
 use deno_runtime::colors;
 use deno_runtime::fmt_errors::format_js_error;
 use deno_runtime::tokio_util::run_local;
+use lazy_static::*;
 use std::env;
 use std::path::PathBuf;
+use tokio::sync::{mpsc, Mutex};
+
+lazy_static! {
+  pub(crate) static ref DENO: (
+    Mutex<mpsc::UnboundedSender<String>>,
+    Mutex<mpsc::UnboundedReceiver<String>>
+  ) = {
+    let (sender, receiver) = mpsc::unbounded_channel::<String>();
+    (Mutex::new(sender), Mutex::new(receiver))
+  };
+  pub(crate) static ref WEBVIEW: (
+    Mutex<mpsc::UnboundedSender<String>>,
+    Mutex<mpsc::UnboundedReceiver<String>>
+  ) = {
+    let (sender, receiver) = mpsc::unbounded_channel::<String>();
+    (Mutex::new(sender), Mutex::new(receiver))
+  };
+}
 
 async fn run_subcommand(flags: Flags) -> Result<i32, AnyError> {
   match flags.subcommand.clone() {
@@ -243,7 +264,13 @@ pub fn main() {
   let future = async move {
     let standalone_res =
       match standalone::extract_standalone(args.clone()).await {
-        Ok(Some((metadata, eszip))) => standalone::run(eszip, metadata).await,
+        Ok(Some((metadata, eszip))) => {
+          let config = webview::create_webview_config(&metadata)?;
+          tokio::spawn(async move {
+            webview::start_webview(config);
+          });
+          standalone::run(eszip, metadata).await
+        }
         Ok(None) => Ok(()),
         Err(err) => Err(err),
       };

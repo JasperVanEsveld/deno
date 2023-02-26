@@ -353,6 +353,11 @@ pub struct Flags {
   pub version: bool,
   pub watch: Option<Vec<PathBuf>>,
   pub no_clear_screen: bool,
+  pub webview_url: Option<String>,
+  pub title: Option<String>,
+  pub decorations: bool,
+  pub transparent: bool,
+  pub dev_tools: bool,
 }
 
 fn join_paths(allowlist: &[PathBuf], d: &str) -> String {
@@ -2048,6 +2053,11 @@ fn runtime_args(
     .arg(v8_flags_arg())
     .arg(seed_arg())
     .arg(enable_testing_features_arg())
+    .arg(webview_url_arg())
+    .arg(title_arg())
+    .arg(decorations_arg())
+    .arg(transparent_arg())
+    .arg(dev_tools_arg())
 }
 
 fn inspect_args(app: Command) -> Command {
@@ -2174,6 +2184,45 @@ fn location_arg<'a>() -> Arg<'a> {
     })
     .help("Value of 'globalThis.location' used by some web APIs")
     .value_hint(ValueHint::Url)
+}
+
+fn webview_url_arg<'a>() -> Arg<'a> {
+  Arg::new("webview-url")
+    .long("webview-url")
+    .takes_value(true)
+    .value_name("FILE|HREF")
+    .help("The webpage to load (defaults to `./index.html`)")
+    .value_hint(ValueHint::Url)
+}
+
+fn title_arg<'a>() -> Arg<'a> {
+  Arg::new("title")
+    .long("title")
+    .takes_value(true)
+    .value_name("STRING")
+    .help("Sets the title of your webview application")
+    .value_hint(ValueHint::Url)
+}
+
+fn dev_tools_arg<'a>() -> Arg<'a> {
+  Arg::new("dev-tools")
+    .long("dev-tools")
+    .help("Enables the opening of dev-tools in the webview")
+    .hide(true)
+}
+
+fn transparent_arg<'a>() -> Arg<'a> {
+  Arg::new("transparent")
+    .long("transparent")
+    .help("Enables transparent background on your webview application")
+    .hide(true)
+}
+
+fn decorations_arg<'a>() -> Arg<'a> {
+  Arg::new("no-decorations")
+    .long("no-decorations")
+    .help("Disables default webview decorations (minimize, maximize and close)")
+    .hide(true)
 }
 
 fn enable_testing_features_arg<'a>() -> Arg<'a> {
@@ -2476,6 +2525,11 @@ fn check_parse(flags: &mut Flags, matches: &clap::ArgMatches) {
 fn compile_parse(flags: &mut Flags, matches: &clap::ArgMatches) {
   flags.type_check_mode = TypeCheckMode::Local;
   runtime_args_parse(flags, matches, true, false);
+  webview_url_arg_parse(flags, matches);
+  title_arg_parse(flags, matches);
+  decorations_arg_parse(flags, matches);
+  transparent_arg_parse(flags, matches);
+  dev_tools_arg_parse(flags, matches);
 
   let mut script: Vec<String> = matches
     .values_of("script_arg")
@@ -3211,6 +3265,34 @@ fn location_arg_parse(flags: &mut Flags, matches: &clap::ArgMatches) {
   flags.location = matches
     .value_of("location")
     .map(|href| Url::parse(href).unwrap());
+}
+
+fn webview_url_arg_parse(flags: &mut Flags, matches: &clap::ArgMatches) {
+  flags.webview_url =
+    matches.value_of("webview-url").map(|url| url.to_string());
+}
+
+fn title_arg_parse(flags: &mut Flags, matches: &clap::ArgMatches) {
+  flags.title = matches.value_of("title").map(|title| title.to_string());
+}
+
+fn decorations_arg_parse(flags: &mut Flags, matches: &clap::ArgMatches) {
+  flags.decorations = true;
+  if matches.is_present("no-decorations") {
+    flags.decorations = false;
+  }
+}
+
+fn transparent_arg_parse(flags: &mut Flags, matches: &clap::ArgMatches) {
+  if matches.is_present("transparent") {
+    flags.transparent = true;
+  }
+}
+
+fn dev_tools_arg_parse(flags: &mut Flags, matches: &clap::ArgMatches) {
+  if matches.is_present("dev-tools") {
+    flags.dev_tools = true;
+  }
 }
 
 fn v8_flags_arg_parse(flags: &mut Flags, matches: &ArgMatches) {

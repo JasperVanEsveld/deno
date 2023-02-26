@@ -189,6 +189,11 @@ async fn create_standalone_binary(
     ca_data,
     entrypoint,
     maybe_import_map,
+    webview_url: ps.options.webview_url_flag().clone(),
+    title: ps.options.title_flag().clone(),
+    decorations: ps.options.decorations(),
+    dev_tools: ps.options.dev_tools(),
+    transparent: ps.options.transparent(),
   };
   let mut metadata = serde_json::to_string(&metadata)?.as_bytes().to_vec();
 

@@ -8,6 +8,7 @@ use crate::ops;
 use crate::proc_state::ProcState;
 use crate::util::v8::construct_v8_flags;
 use crate::version;
+use crate::webview;
 use crate::CliGraphResolver;
 use deno_core::anyhow::Context;
 use deno_core::error::type_error;
@@ -50,6 +51,11 @@ pub struct Metadata {
   pub seed: Option<u64>,
   pub permissions: PermissionsOptions,
   pub location: Option<Url>,
+  pub webview_url: Option<String>,
+  pub title: Option<String>,
+  pub decorations: bool,
+  pub dev_tools: bool,
+  pub transparent: bool,
   pub v8_flags: Vec<String>,
   pub log_level: Option<Level>,
   pub ca_stores: Option<Vec<String>>,
@@ -278,7 +284,7 @@ pub async fn run(
       inspect: ps.options.is_inspecting(),
     },
     extensions: ops::cli_exts(ps),
-    extensions_with_js: vec![],
+    extensions_with_js: vec![webview::ipc::webview_extension()],
     startup_snapshot: Some(crate::js::deno_isolate_init()),
     unsafely_ignore_certificate_errors: metadata
       .unsafely_ignore_certificate_errors,

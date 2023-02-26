@@ -1,7 +1,8 @@
 // Copyright 2018-2023 the Deno authors. All rights reserved. MIT license.
 
 pub fn create_basic_runtime() -> tokio::runtime::Runtime {
-  tokio::runtime::Builder::new_current_thread()
+  tokio::runtime::Builder::new_multi_thread()
+    .worker_threads(2)
     .enable_io()
     .enable_time()
     // This limits the number of threads for blocking operations (like for
